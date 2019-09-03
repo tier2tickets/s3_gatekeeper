@@ -100,8 +100,8 @@ def lambda_handler(event, context):
 				},
 			}
 		
-				
-		if debug != 'true' and (not 'origin' in event['headers'] or not (event['headers']['origin'].lower().endswith('helpdeskbuttons.com') or event['headers']['origin'].lower().endswith('tier2tickets.com') or event['headers']['origin'] == 'api-request')):
+		headers_lc = dict((k.lower(), v.lower()) for k,v in event['headers'].items())
+		if debug != 'true' and (not 'origin' in headers_lc or not (headers_lc['origin'].endswith('helpdeskbuttons.com') or headers_lc['origin'].endswith('tier2tickets.com') or headers_lc['origin'] == 'api-request')):
 			logEvent(userAgent, sourceIp, True, path, operation, "Forbidden: bad origin", 403)
 			return {
 				'statusCode': 403,
