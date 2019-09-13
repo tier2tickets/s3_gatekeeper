@@ -184,7 +184,7 @@ def lambda_handler(event, context):
 			toReturn['clientReturn']['X-Amz-Credential'] = os.environ['AWS_ACCESS_KEY_ID'] + '/' + datestamp + '/' + os.environ['AWS_REGION'] + '/s3/aws4_request'
 			toReturn['clientReturn']['X-Amz-Algorithm'] = 'AWS4-HMAC-SHA256'
 			toReturn['clientReturn']['X-Amz-Date'] = amzdate
-			toReturn['clientReturn']['key'] = 'uploads' + path
+			toReturn['clientReturn']['key'] = root + path
 			toReturn['clientReturn']['Cache-Control'] = 'no-store, must-revalidate'
 			toReturn['clientReturn']['x-amz-security-token'] = os.environ['AWS_SESSION_TOKEN']
 			toReturn['bucket'] = bucket
