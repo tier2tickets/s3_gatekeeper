@@ -100,17 +100,6 @@ def lambda_handler(event, context):
 				},
 			}
 		
-		headers_lc = dict((k.lower(), v.lower()) for k,v in event['headers'].items())
-		if debug != 'true' and (not 'origin' in headers_lc or not (headers_lc['origin'].endswith('helpdeskbuttons.com') or headers_lc['origin'].endswith('tier2tickets.com') or headers_lc['origin'] == 'api-request')):
-			logEvent(userAgent, sourceIp, True, path, operation, "Forbidden: bad origin", 403)
-			return {
-				'statusCode': 403,
-				'body': json.dumps({'msg': "Forbidden: bad origin", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
-								'Cache-Control': 'no-store, must-revalidate',
-				}
-			}
-		
 		requesterIp = ipaddress.ip_address(sourceIp)
 		blocked = True
 		for subnet in allowed_subnets:
