@@ -1,3 +1,17 @@
+# install command: iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g'))
+echo '
+====================================================================================================
+This script will automatically provision an AWS account for the Tier2Tickets gatekeeper application.
+In doing so it will create an S3 bucket, an API gateway endpoint, a Lambda function, an IAM role,
+an IAM policy, and a DynamoDB table and will configure and link them all.
+
+It requires root credentials in the form of an AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
+
+You can obtain those credentials by clicking "Access Keys"
+here: https://console.aws.amazon.com/iam/home#security_credential
+=====================================================================================================
+'
+
 $AWS_ACCESS_KEY_ID = ''
 $AWS_SECRET_ACCESS_KEY = ''
 $AWS_REGION = ''
@@ -17,27 +31,31 @@ Set-ExecutionPolicy RemoteSigned -Scope Process
 echo "+ loading AWSPowerShell.NetCore"
 Import-Module AWSPowerShell.NetCore
 
-echo ''
+$init_creds = {
 
-while (-Not $AWS_ACCESS_KEY_ID) {
-	$AWS_ACCESS_KEY_ID = Read-Host -Prompt 'Please enter your AWS_ACCESS_KEY_ID'
+	echo ''
+	while (-Not $AWS_ACCESS_KEY_ID) {
+		$AWS_ACCESS_KEY_ID = Read-Host -Prompt 'Please enter your AWS_ACCESS_KEY_ID'
+	}
+
+	while (-Not $AWS_SECRET_ACCESS_KEY) {
+		$AWS_SECRET_ACCESS_KEY = Read-Host -Prompt 'Please enter your AWS_SECRET_ACCESS_KEY'
+	}
+
+	while (-Not $AWS_REGION -Or -Not (Get-AWSRegion | Where-Object {$_.Region -eq $AWS_REGION}).Region) {
+		$AWS_REGION = Read-Host -Prompt 'Please enter your AWS_REGION eg: us-east-1'
+	}
+
+	while (-Not $UNIQUE_NAME) {
+		$UNIQUE_NAME = Read-Host -Prompt 'Please enter a globally unique identifier for the S3 bucket name: lowercase alphanumeric and dashes only'
+	}
+
+	Set-AWSCredential -AccessKey $AWS_ACCESS_KEY_ID -SecretKey $AWS_SECRET_ACCESS_KEY -Scope Script
+	Set-DefaultAWSRegion -Region $AWS_REGION -Scope Script
+
 }
 
-while (-Not $AWS_SECRET_ACCESS_KEY) {
-	$AWS_SECRET_ACCESS_KEY = Read-Host -Prompt 'Please enter your AWS_SECRET_ACCESS_KEY'
-}
-
-while (-Not $AWS_REGION -Or -Not (Get-AWSRegion | Where-Object {$_.Region -eq $AWS_REGION}).Region) {
-	$AWS_REGION = Read-Host -Prompt 'Please enter your AWS_REGION eg: us-east-1'
-}
-
-while (-Not $UNIQUE_NAME) {
-	$UNIQUE_NAME = Read-Host -Prompt 'Please enter a globally unique identifier for the S3 bucket name: lowercase alphanumeric and dashes only'
-}
-
-Set-AWSCredential -AccessKey $AWS_ACCESS_KEY_ID -SecretKey $AWS_SECRET_ACCESS_KEY -Scope Script
-Set-DefaultAWSRegion -Region $AWS_REGION -Scope Script
-
+&$init_creds
 
 try {
 	if (-Not (Get-S3Bucket | Where-Object {$_.BucketName -eq $UNIQUE_NAME}).BucketName){
@@ -51,7 +69,11 @@ try {
 	echo "ERROR FROM AWS:"
 	echo $_.Exception.Message
 	echo ''
-	exit
+	Write-Host -NoNewLine 'Press any key to start over';
+	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+	echo ''
+	echo ''
+	&$init_creds
 }
 
 echo "+ Enabling AES256 encryption on S3 bucket"
