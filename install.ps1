@@ -303,8 +303,8 @@ Try{
 
 echo ''
 echo ''
-echo "* here is the endpoint URL: https://$api_id.execute-api.$AWS_REGION.amazonaws.com/production"
+echo "* here is the gatekeeper URL: https://$api_id.execute-api.$AWS_REGION.amazonaws.com/production/"
 # test with https://xxxx.execute-api.xxxx.amazonaws.com/production/test?path=/test&operation=GET_Object&expires=9999999999&hmac=test
-echo "* here is the secret key: $hmac_key"
+echo "* here is the gatekeeper key: $hmac_key"
 echo ''
 echo ''
