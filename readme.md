@@ -23,7 +23,7 @@ The S3 gatekeeper is the program used to safeguard your data as a customer of ti
 
 **To Complete the process:**
 
-The script will print your gatekeepers url and key. This information is needed by our devs to attach the account to your gatekeeper. **Use and encryption method (for instance https://privnote.com/) to email this to us at support@tier2.tech.**  
+The script will print your gatekeeper's url and key. This information is needed by our developers to attach the account to your gatekeeper. **Use and encryption method (for instance https://privnote.com/) to email this to us at support@tier2.tech.**  
 
 **Prerequisites:**
 
