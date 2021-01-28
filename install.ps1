@@ -77,6 +77,7 @@ while (-Not $UNIQUE_NAME) {
 	}
 }
 
+echo ''
 
 echo "+ Enabling AES256 encryption on S3 bucket"
 Set-S3BucketEncryption -BucketName $UNIQUE_NAME -ServerSideEncryptionConfiguration_ServerSideEncryptionRule @{ ServerSideEncryptionByDefault=@{ ServerSideEncryptionAlgorithm="AES256" } }
