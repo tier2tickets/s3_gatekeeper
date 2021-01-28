@@ -8,13 +8,18 @@ The S3 gatekeeper is the program used to safeguard your data as a customer of ti
 
 **Installation:**
 
-1) Open a PowerShell window (not a command prompt window)
+1. Open a PowerShell window (not a command prompt window)
 
-2) Paste the following command into the window:
+2. Paste the following command into the window:
 
    `iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g?{0}' -f (Get-Random)))`
 
-3) Press enter and follow the prompts.
+3. Press enter and follow the prompts.
+
+**You will need a few peices of infomation to continue.** 
+  * Root credentials to the account in the form of an AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY. You can find/create a new set of keys on this page https://console.aws.amazon.com/iam/home#security_credential under the Access Keys tab.
+  * Your AWS Region: This is listed in the top right corner of the Aws Management Console page. Click on the location dropdown to see the region names.
+  * A unique name for your gatekeeper/s3 bucket. Something like HDB-<BUSINESSNAME>-S3. Make sure this name contains only alphanumeric charaacters and dashes (-).
 
 
 
