@@ -49,7 +49,7 @@ while (-Not $UNIQUE_NAME) {
 	}
 
 	while (-Not $UNIQUE_NAME) {
-		$UNIQUE_NAME = Read-Host -Prompt 'Please enter a globally unique identifier for the S3 bucket name: lowercase alphanumeric and dashes only'
+		$UNIQUE_NAME = Read-Host -Prompt 'Please enter a unique name for your gatekeeper: lowercase alphanumeric and dashes only'
 	}
 
 	Set-AWSCredential -AccessKey $AWS_ACCESS_KEY_ID -SecretKey $AWS_SECRET_ACCESS_KEY -Scope Script
