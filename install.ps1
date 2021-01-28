@@ -12,11 +12,6 @@ here: https://console.aws.amazon.com/iam/home#security_credential
 =====================================================================================================
 '
 
-$AWS_ACCESS_KEY_ID = ''
-$AWS_SECRET_ACCESS_KEY = ''
-$AWS_REGION = ''
-$UNIQUE_NAME = ''
-
 echo "+ checking if AWSPowerShell.NetCore installed..."
 if (Get-Module -ListAvailable -Name AWSPowerShell.NetCore) {
     echo "+ AWSPowerShell.NetCore Module is installed."
@@ -31,7 +26,12 @@ Set-ExecutionPolicy RemoteSigned -Scope Process
 echo "+ loading AWSPowerShell.NetCore"
 Import-Module AWSPowerShell.NetCore
 
-$init_creds = {
+$UNIQUE_NAME = ''
+$AWS_ACCESS_KEY_ID = ''
+$AWS_REGION = ''
+$AWS_SECRET_ACCESS_KEY = ''
+
+while (-Not $UNIQUE_NAME) {
 
 	echo ''
 	while (-Not $AWS_ACCESS_KEY_ID) {
@@ -53,28 +53,28 @@ $init_creds = {
 	Set-AWSCredential -AccessKey $AWS_ACCESS_KEY_ID -SecretKey $AWS_SECRET_ACCESS_KEY -Scope Script
 	Set-DefaultAWSRegion -Region $AWS_REGION -Scope Script
 
-}
-
-&$init_creds
-
-try {
-	if (-Not (Get-S3Bucket | Where-Object {$_.BucketName -eq $UNIQUE_NAME}).BucketName){
-		echo "+ Creating Private S3 Bucket"
-		$result = New-S3Bucket -BucketName $UNIQUE_NAME -CannedACLName Private 2> $null
-	} else {
-		echo "- S3 Bucket already exists. Skipping creation."
+	try {
+		if (-Not (Get-S3Bucket | Where-Object {$_.BucketName -eq $UNIQUE_NAME}).BucketName){
+			echo "+ Creating Private S3 Bucket"
+			$result = New-S3Bucket -BucketName $UNIQUE_NAME -CannedACLName Private 2> $null
+		} else {
+			echo "- S3 Bucket already exists. Skipping creation."
+		}
+	} catch {
+		echo ''
+		echo "ERROR FROM AWS:"
+		echo $_.Exception.Message
+		echo ''
+		Write-Host -NoNewLine 'Press any key to start over';
+		$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
+		echo ''
+		$UNIQUE_NAME = ''
+		$AWS_ACCESS_KEY_ID = ''
+		$AWS_REGION = ''
+		$AWS_SECRET_ACCESS_KEY = ''
 	}
-} catch {
-	echo ''
-	echo "ERROR FROM AWS:"
-	echo $_.Exception.Message
-	echo ''
-	Write-Host -NoNewLine 'Press any key to start over';
-	$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown');
-	echo ''
-	echo ''
-	&$init_creds
 }
+
 
 echo "+ Enabling AES256 encryption on S3 bucket"
 Set-S3BucketEncryption -BucketName $UNIQUE_NAME -ServerSideEncryptionConfiguration_ServerSideEncryptionRule @{ ServerSideEncryptionByDefault=@{ ServerSideEncryptionAlgorithm="AES256" } }
@@ -151,8 +151,11 @@ if (-Not (Get-IAMRoleList | Where-Object {$_.RoleName -eq $UNIQUE_NAME}).RoleNam
 			}
 		]
 	}'
-	echo "+ waiting for IAM role to become available to use"
-	Start-Sleep 16 # 8 seconds is the minimum
+
+	Write-Host '+ waiting for IAM role to become available to use' -NoNewLine
+	1..20 | % { Write-Host '.' -NoNewLine; Start-Sleep 1} # 8 seconds is the minimum
+	echo ''
+
 } else {
 	echo "- IAM role for lambda function already exists. Skipping creation"
 }
@@ -170,12 +173,13 @@ if (-Not (Get-LMFunctionList | Where-Object {$_.FunctionName -eq $UNIQUE_NAME}).
 	$result = Publish-LMFunction -Code_ZipFile $zip_archive -Description "Tier2.tech s3 gatekeeper" -FunctionName $UNIQUE_NAME -Role $lambda_role_arn -Handler 'lambda_function.lambda_handler' -Runtime 'python3.8' -Environment_Variable @{
 		allowed_subnets='0.0.0.0/0'
 		blocked_subnets='192.168.1.0/24'
-		bucket=$UNIQUE_NAME
+		bucket="$UNIQUE_NAME"
 		debug='false'
-		hmac_key=$hmac_key
-		log_table=$UNIQUE_NAME
+		hmac_key="$hmac_key"
+		log_table="$UNIQUE_NAME"
 		log_ttl='15552000'
 	}
+	
 } else {
 	echo "- Lambda function already exists. Skipping Creation."
 	$hmac_key = (Get-LMFunctionConfiguration -FunctionName $UNIQUE_NAME).Environment.Variables.hmac_key
