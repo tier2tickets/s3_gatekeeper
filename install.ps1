@@ -1,9 +1,11 @@
-# install command: iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g'))
+# install command:
+# iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g?{0}' -f (Get-Random)))
+
 echo '
 ====================================================================================================
 This script will automatically provision an AWS account for the Tier2Tickets gatekeeper application.
 In doing so it will create an S3 bucket, an API gateway endpoint, a Lambda function, an IAM role,
-an IAM policy, and a DynamoDB table and will configure and link them all.
+an IAM policy, and a DynamoDB table and will configure and link them all as needed.
 
 It requires root credentials in the form of an AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 
