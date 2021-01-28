@@ -45,15 +45,17 @@ while (-Not $UNIQUE_NAME) {
 	}
 
 	while (-Not $AWS_REGION -Or -Not (Get-AWSRegion | Where-Object {$_.Region -eq $AWS_REGION}).Region) {
-		$AWS_REGION = Read-Host -Prompt 'Please enter your AWS_REGION eg: us-east-1'
+		$AWS_REGION = (Read-Host -Prompt 'Please enter your AWS_REGION eg: us-east-1').ToLower()
 	}
 
 	while (-Not $UNIQUE_NAME) {
-		$UNIQUE_NAME = Read-Host -Prompt 'Please enter a unique name for your gatekeeper: lowercase alphanumeric and dashes only'
+		$UNIQUE_NAME = (Read-Host -Prompt 'Please enter a unique name for your gatekeeper: alphanumeric and dashes only').ToLower()
 	}
 
 	Set-AWSCredential -AccessKey $AWS_ACCESS_KEY_ID -SecretKey $AWS_SECRET_ACCESS_KEY -Scope Script
 	Set-DefaultAWSRegion -Region $AWS_REGION -Scope Script
+
+	echo ''
 
 	try {
 		if (-Not (Get-S3Bucket | Where-Object {$_.BucketName -eq $UNIQUE_NAME}).BucketName){
@@ -76,8 +78,6 @@ while (-Not $UNIQUE_NAME) {
 		$AWS_SECRET_ACCESS_KEY = ''
 	}
 }
-
-echo ''
 
 echo "+ Enabling AES256 encryption on S3 bucket"
 Set-S3BucketEncryption -BucketName $UNIQUE_NAME -ServerSideEncryptionConfiguration_ServerSideEncryptionRule @{ ServerSideEncryptionByDefault=@{ ServerSideEncryptionAlgorithm="AES256" } }
@@ -107,6 +107,7 @@ Write-S3LifecycleConfiguration -BucketName $UNIQUE_NAME -Configuration_Rule @{
         )
 }
 
+$account_id = (Get-STSCallerIdentity).Account
 
 if (-Not (Get-IAMPolicyList -Scope 'local' | Where-Object {$_.PolicyName -eq $UNIQUE_NAME}).PolicyName){
 	echo "+ Creating IAM policy for lambda function"
@@ -121,8 +122,8 @@ if (-Not (Get-IAMPolicyList -Scope 'local' | Where-Object {$_.PolicyName -eq $UN
 					"s3:*"
 				],
 				"Resource": [
-					"arn:aws:dynamodb:::table/'+$UNIQUE_NAME+'/*",
-					"arn:aws:dynamodb:::table/'+$UNIQUE_NAME+'",
+					"arn:aws:dynamodb:*:*:table/'+$UNIQUE_NAME+'/*",
+					"arn:aws:dynamodb:*:*:table/'+$UNIQUE_NAME+'",
 					"arn:aws:s3:::'+$UNIQUE_NAME+'/*",
 					"arn:aws:s3:::'+$UNIQUE_NAME+'"
 				]
@@ -134,7 +135,6 @@ if (-Not (Get-IAMPolicyList -Scope 'local' | Where-Object {$_.PolicyName -eq $UN
 }
 
 $policy_arn = (Get-IAMPolicyList -Scope 'local' | Where-Object {$_.PolicyName -eq $UNIQUE_NAME}).Arn
-
 
 if (-Not (Get-IAMRoleList | Where-Object {$_.RoleName -eq $UNIQUE_NAME}).RoleName){
 	echo "+ Creating IAM role for lambda function"
@@ -295,8 +295,8 @@ if (-Not $deployment_id){
 }
 
 
-Try{ 
-	$result = Add-LMPermission -FunctionName $UNIQUE_NAME -Action "lambda:InvokeFunction" -Principal "apigateway.amazonaws.com" -StatementId "$UNIQUE_NAME-statement" -SourceArn ("arn:aws:execute-api:"+$AWS_REGION+":"+$account_id+":"+$api_id+"/*/GET/*")
+Try{
+	$result = Add-LMPermission -FunctionName $UNIQUE_NAME -Action "lambda:InvokeFunction" -Principal "apigateway.amazonaws.com" -StatementId "$UNIQUE_NAME-sid" -SourceArn ("arn:aws:execute-api:"+$AWS_REGION+":"+$account_id+":"+$api_id+"/*/GET/*")
 	echo "+ Granted invocation permission on the lambda function to the API"
 } catch [System.InvalidOperationException] {
 	echo "- Could not grant invocation permission on the lambda function to the API - perhaps already granted"
