@@ -8,7 +8,7 @@ The S3 gatekeeper is the program used to safeguard your data as a customer of ti
 
 **Installation:**
 
-1) Open a PowerShell window (not the command prompt)
+1) Open a PowerShell window (not a command prompt window)
 
 2) Paste the following command into the window:
 
