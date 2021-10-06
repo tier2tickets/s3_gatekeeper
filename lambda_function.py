@@ -36,17 +36,11 @@ def lambda_handler(event, context):
 			
 		event['headers'] = {k.lower():v.lower() for k,v in event['headers'].items()}
 		
-		if 'origin' in event['headers'] and event['headers']['origin'] != 'null':
+		if 'origin' in event['headers'] and event['headers']['origin'] and event['headers']['origin'] != 'null':
 			origin = event['headers']['origin']
 			
 			if not origin.endswith('helpdeskbuttons.com'):
-				return {
-					'statusCode': 400,
-					'body': json.dumps({'msg': "Bad Request: missing 'origin' header", 'error': True}),
-					'headers': {	'Access-Control-Allow-Origin': '*',
-									'Cache-Control': 'no-store, must-revalidate',
-					},
-				}
+				origin = 'null'
 		else:
 			origin = '*'
 		
