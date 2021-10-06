@@ -23,17 +23,33 @@ def lambda_handler(event, context):
 		root = event['path'].strip('/') # the "folder" where uploads are stored
 		sourceIp = event['requestContext']['identity']['sourceIp']
 		userAgent = event['requestContext']['identity']['userAgent']
-		
+		origin = "https://dev.helpdeskbuttons.com"
 		
 		if not event['queryStringParameters'] or not 'path' in event['queryStringParameters']:
 			return {
 				'statusCode': 400,
 				'body': json.dumps({'msg': "Bad Request: missing 'path' param", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
 			
+		event['headers'] = {k.lower():v.lower() for k,v in event['headers'].items()}
+		
+		if 'origin' in event['headers'] and event['headers']['origin'] != 'null':
+			origin = event['headers']['origin']
+			
+			if not origin.endswith('helpdeskbuttons.com'):
+				return {
+					'statusCode': 400,
+					'body': json.dumps({'msg': "Bad Request: missing 'origin' header", 'error': True}),
+					'headers': {	'Access-Control-Allow-Origin': '*',
+									'Cache-Control': 'no-store, must-revalidate',
+					},
+				}
+		else:
+			origin = '*'
+		
 		path = event['queryStringParameters']['path']
 		subroot = path.split('/')[1]
 		
@@ -41,7 +57,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 400,
 				'body': json.dumps({'msg': "Bad Request: invalid 'operation' param", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -52,7 +68,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 400,
 				'body': json.dumps({'msg': "Bad Request: missing 'expires' param", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -61,7 +77,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 400,
 				'body': json.dumps({'msg': "Bad Request: missing 'hmac' param", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -72,7 +88,7 @@ def lambda_handler(event, context):
 				return {
 					'statusCode': 400,
 					'body': json.dumps({'msg': "Bad Request: 'path' param must begin and end with '/' and be at least 3 characters", 'error': True}),
-					'headers': {	'Access-Control-Allow-Origin': '*',
+					'headers': {	'Access-Control-Allow-Origin': origin,
 									'Cache-Control': 'no-store, must-revalidate',
 					},
 				}
@@ -85,7 +101,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 401,
 				'body': json.dumps({'msg': "Unauthorized: invalid 'hmac' param", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -95,7 +111,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 410,
 				'body': json.dumps({'msg': 'Expired', 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -118,7 +134,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 403,
 				'body': json.dumps({'msg': "Forbidden: ACL", 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -134,8 +150,9 @@ def lambda_handler(event, context):
 				'statusCode': 302,
 				'body': json.dumps({'msg': "Success", 'url': url, 'error': False}),
 				'headers': {	'Location': url,
-								'Access-Control-Allow-Origin': '*',
+								'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
+								'Access-Control-Allow-Credentials': 'true',
 				}
 			}
 		
@@ -156,6 +173,7 @@ def lambda_handler(event, context):
 				'body': json.dumps({'msg': "Success", 'contents': contents, 'error': False}),
 				'headers': {	'Access-Control-Allow-Origin': '*',
 								'Cache-Control': 'no-store, must-revalidate',
+								'Access-Control-Allow-Credentials': 'true',
 				},
 			}
 			
@@ -210,7 +228,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 200,
 				'body': json.dumps(toReturn),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -222,7 +240,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 500,
 				'body': json.dumps({'msg': traceback.format_exc(), 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
@@ -230,7 +248,7 @@ def lambda_handler(event, context):
 			return {
 				'statusCode': 500,
 				'body': json.dumps({'msg': 'Internal Exception', 'error': True}),
-				'headers': {	'Access-Control-Allow-Origin': '*',
+				'headers': {	'Access-Control-Allow-Origin': origin,
 								'Cache-Control': 'no-store, must-revalidate',
 				},
 			}
