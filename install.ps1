@@ -174,7 +174,7 @@ if (-Not (Get-LMFunctionList | Where-Object {$_.FunctionName -eq $UNIQUE_NAME}).
 	echo "+ Creating lambda function"
 	$lambda_role_arn = (Get-IAMRole -RoleName $UNIQUE_NAME).arn
 	$hmac_key = -join ((65..90) + (97..122) | Get-Random -Count 20 | % {[char]$_})
-	$result = Publish-LMFunction -Code_ZipFile $zip_archive -Description "Tier2.tech s3 gatekeeper" -FunctionName $UNIQUE_NAME -Role $lambda_role_arn -Handler 'lambda_function.lambda_handler' -Runtime 'python3.8' -Environment_Variable @{
+	$result = Publish-LMFunction -Code_ZipFile $zip_archive -Description "Tier2.tech s3 gatekeeper" -FunctionName $UNIQUE_NAME -Role $lambda_role_arn -Handler 'lambda_function.lambda_handler' -Runtime 'python3.13' -Timeout 30 -Environment_Variable @{
 		allowed_subnets='0.0.0.0/0'
 		blocked_subnets='192.168.1.0/24'
 		bucket="$UNIQUE_NAME"
